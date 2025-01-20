@@ -1,0 +1,4 @@
+*.md
+.dockervenv
+.git
+.venv
