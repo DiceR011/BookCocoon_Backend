@@ -1,6 +1,8 @@
 # api/migrate_db.py
 from sqlalchemy import create_engine
-from api.models.book import Base
+from api.db import Base  # 共通のBaseをインポート
+from api.models.book import Book  # Bookモデルをインポート
+from api.models.progress import Progress  # Progressモデルをインポート
 
 DB_URL = "mysql+pymysql://root@db:3306/demo?charset=utf8"
 engine = create_engine(DB_URL, echo=True)
