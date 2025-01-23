@@ -39,7 +39,7 @@ class BookCreate(BookBase):
 
 
 # レスポンススキーマ
-class BookCreateResponse(BaseModel):
+class BookCreateResponse(BookBase):
     book_id: int
 
     class Config:

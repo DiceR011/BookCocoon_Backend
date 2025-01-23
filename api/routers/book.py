@@ -19,11 +19,11 @@ async def create_book(book_body: book_schema.BookCreate, db: AsyncSession = Depe
 async def update_book(book_id: int, book_body: book_schema.BookCreate, db: AsyncSession = Depends(get_db)):
     book = await book_crud.get_book(db, book_id=book_id)
     if book is None:
-        raise HTTPException(status_code=404, detail="Bask not found")
+        raise HTTPException(status_code=404, detail="Book not found")
     
     return await book_crud.update_book(db, book_body, original=book)
 
-@router .delete("/books/{book_id}", response_model=None)
+@router.delete("/books/{book_id}", response_model=None)
 async def delete_book(book_id: int, db: AsyncSession = Depends(get_db)):
     book = await book_crud.get_book(db, book_id=book_id)
     if book is None:
