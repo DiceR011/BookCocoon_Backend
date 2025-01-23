@@ -1,12 +1,12 @@
 from pydantic import BaseModel, Field
-from datetime import date
+from datetime import datetime
 from enum import Enum
 
 
 class ReadState(str, Enum):
-    UNREAD = "未読"
-    READING = "読書中"
-    COMPLETED = "読書完了"
+    UNREAD = "Unread"
+    READING = "Reading"
+    COMPLETED = "Finished"
 
 
 # 共通スキーマ
@@ -15,8 +15,8 @@ class ProgressBase(BaseModel):
     current_page: int
     read_time: int
     read_state: ReadState = Field(..., description="読書の進行状態")
-    start_date: date | None = Field(None, description="読書開始日")
-    finish_date: date | None = Field(None, description="読書完了日")
+    start_date: datetime | None = Field(None, description="読書開始日")
+    finish_date: datetime | None = Field(None, description="読書完了日")
 
 
 

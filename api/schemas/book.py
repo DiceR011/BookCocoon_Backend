@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, PositiveInt
-
+from datetime import datetime
 
 # 共通スキーマ
 class BookBase(BaseModel):
@@ -27,6 +27,7 @@ class BookBase(BaseModel):
 # 全体スキーマ
 class Book(BookBase):
     book_id: int
+    time_stamp: datetime
 
     class Config:
         orm_mode = True
