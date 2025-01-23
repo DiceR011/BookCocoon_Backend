@@ -20,4 +20,9 @@ async def update_progress(book_id: int, update_data: progress_schema.ProgressUpd
     if not progress:
         raise HTTPException(status_code=404, detail="Book not found")
     
-    return progress_crud.patch_progress(db, update_data, original=progress)
+    
+    try:
+        return progress_crud.patch_progress(db, update_data, original=progress)
+    except ValueError as e:
+        # ValueErrorをHTTP 400エラーに変換
+        raise HTTPException(status_code=400, detail=str(e))

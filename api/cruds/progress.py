@@ -18,7 +18,20 @@ def get_progress(db: Session, book_id: int) -> progress_model.Progress | None:
 
 # Update
 def patch_progress(db: Session, progress_patch: progress_schema.ProgressUpdate, original: progress_model.Progress) -> progress_model.Progress:
-    # read_stateが"Unread"から、"Reading"になった場合、start_dateに時間を記録
+    # current_pageがbook.total_pageを超える場合のエラー
+    if original.book and progress_patch.current_page > original.book.total_page:
+        raise ValueError(f"current_page ({progress_patch.current_page}) cannot exceed total_page ({original.book.total_page})")
+
+    # read_stateが"Unread"から"Finished"に直接変更された場合のエラー
+    if original.read_state == "Unread" and progress_patch.read_state == "Finished":
+        raise ValueError('Cannot change read_state from "Unread" to "Finished" directly.')
+    
+    # read_stateが"Reading","Finish"から"Unread"に変更された場合のエラー
+    if original.read_state in ["Reading", "Finished"] and progress_patch.read_state == "Unread":
+        raise ValueError('Cannot change read_state from "Reading" or "Finished" to "Unread"')
+
+
+    # read_stateが"Unread"から"Reading"になった場合、start_dateに時間を記録
     if original.read_state == "Unread" and progress_patch.read_state == "Reading":
         original.start_date = get_japan_time()
     
