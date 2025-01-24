@@ -29,7 +29,8 @@ async def create_book(db: AsyncSession, book_create:book_schema.BookCreate) -> b
     )
     
     db.add(new_progress)
-    db.commit()
+    await db.commit()  
+    await db.refresh(book)  
     
     return book
 

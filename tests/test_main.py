@@ -127,3 +127,102 @@ async def test_delete_book_not_found(async_client: AsyncClient):
     response = await async_client.delete("/books/999")
     assert response.status_code == 404
     assert response.json()["detail"] == "Book not found"
+
+# GET /books/{book_id}/progress
+@pytest.mark.asyncio
+async def test_get_progress(async_client: AsyncClient):
+    # テスト用の本を作成
+    create_response = await async_client.post("/books", json={
+        "title": "スッキリわかるPython入門",
+        "author": "佐藤貴彦",
+        "isbn": "978-4-295-01793-7",
+        "total_page": 300
+    })
+    assert create_response.status_code == 200
+    book_id = create_response.json()["book_id"]
+
+    # プログレスの取得を確認
+    response = await async_client.get(f"/books/{book_id}/progress")
+    assert response.status_code == 200
+    assert response.json() == {
+        "book_id": book_id,
+        "current_page": 0,
+        "read_time": 0,
+        "read_state": "Unread",
+        "start_date": None,
+        "finish_date": None,
+    }
+
+
+# PATCH /books/{book_id}/progress
+@pytest.mark.asyncio
+async def test_update_progress_invalid_current_page(async_client: AsyncClient):
+    # テスト用の本を作成
+    create_response = await async_client.post("/books", json={
+        "title": "スッキリわかるPython入門",
+        "author": "佐藤貴彦",
+        "isbn": "978-4-295-01793-7",
+        "total_page": 300
+    })
+    assert create_response.status_code == 200
+    book_id = create_response.json()["book_id"]
+
+    # プログレスを更新（current_pageがtotal_pageを超える場合）
+    update_response = await async_client.patch(f"/books/{book_id}/progress", json={
+        "current_page": 350,  # total_pageを超える
+        "read_time": 60,
+        "read_state": "Reading"
+    })
+    assert update_response.status_code == 400
+    assert update_response.json()["detail"] == "current_page (350) cannot exceed total_page (300)"
+
+@pytest.mark.asyncio
+async def test_update_progress_invalid_read_state_transition(async_client: AsyncClient):
+    # テスト用の本を作成
+    create_response = await async_client.post("/books", json={
+        "title": "スッキリわかるPython入門",
+        "author": "佐藤貴彦",
+        "isbn": "978-4-295-01793-7",
+        "total_page": 300
+    })
+    assert create_response.status_code == 200
+    book_id = create_response.json()["book_id"]
+
+    # プログレスを更新（read_stateが"Unread"から"Finished"に直接変更される場合）
+    update_response = await async_client.patch(f"/books/{book_id}/progress", json={
+        "current_page": 50,
+        "read_time": 60,
+        "read_state": "Finished"  # "Unread"から"Finished"に変更
+    })
+    assert update_response.status_code == 400
+    assert update_response.json()["detail"] == 'Cannot change read_state from "Unread" to "Finished" directly.'
+
+@pytest.mark.asyncio
+async def test_update_progress_invalid_read_state_unread(async_client: AsyncClient):
+    # テスト用の本を作成
+    create_response = await async_client.post("/books", json={
+        "title": "スッキリわかるPython入門",
+        "author": "佐藤貴彦",
+        "isbn": "978-4-295-01793-7",
+        "total_page": 300
+    })
+    assert create_response.status_code == 200
+    book_id = create_response.json()["book_id"]
+
+    # プログレスを作成（"Reading"に設定）
+    create_progress_response = await async_client.patch(f"/books/{book_id}/progress", json={
+        "current_page": 50,
+        "read_time": 60,
+        "read_state": "Reading"
+    })
+    assert create_progress_response.status_code == 200
+
+    # プログレスを更新（read_stateが"Reading"から"Unread"に変更される場合）
+    update_response = await async_client.patch(f"/books/{book_id}/progress", json={
+        "current_page": 100,
+        "read_time": 60,
+        "read_state": "Unread"  # "Reading"から"Unread"に変更
+    })
+    assert update_response.status_code == 400
+    assert update_response.json()["detail"] == 'Cannot change read_state from "Reading" or "Finished" to "Unread"'
+
