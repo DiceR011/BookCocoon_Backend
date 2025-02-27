@@ -30,3 +30,5 @@ async def delete_book(book_id: int, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Book not found")
     
     return await book_crud.delete_book(db, original=book)
+
+
